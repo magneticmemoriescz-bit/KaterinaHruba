@@ -5,18 +5,25 @@ import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { Booking, ContactMessage } from './src/types';
 
-// Establish __dirname equivalents in ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Establish __dirname equivalents safely for both ESM (dev) and CJS (prod)
+const getDirname = () => {
+  if (typeof __dirname !== 'undefined') {
+    return __dirname;
+  }
+  const metaUrl = (import.meta as any)?.url;
+  if (metaUrl) {
+    return path.dirname(fileURLToPath(metaUrl));
+  }
+  return process.cwd();
+};
+
+const DB_DIR = path.join(getDirname(), 'data');
+const DB_PATH = path.join(DB_DIR, 'db.json');
 
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
-
-// Path to JSON database
-const DB_DIR = path.join(__dirname, 'data');
-const DB_PATH = path.join(DB_DIR, 'db.json');
 
 // Ensure db directory and file exist with initial structures
 if (!fs.existsSync(DB_DIR)) {
@@ -329,7 +336,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*all', (req, res) => {
+    app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
