@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SERVICES } from '../data/servicesData';
 import { Booking } from '../types';
 import { Calendar, Clock, User, Phone, Mail, CheckCircle, ChevronLeft, ChevronRight, CalendarHeart } from 'lucide-react';
+import { createBooking, deleteBooking } from '../lib/firebaseService';
 
 interface BookingSectionProps {
   selectedServiceId: string;
@@ -186,34 +187,21 @@ export default function BookingSection({
     };
 
     try {
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(bookingPayload)
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setSuccess(true);
-        setCancelSuccess(false);
-        setLastCreatedBooking(result.data);
-        await refreshBookings();
-        // Clear form
-        setClientName('');
-        setClientSurname('');
-        setClientPhone('');
-        setClientEmail('');
-        setNotes('');
-        setSelectedTime('');
-      } else {
-        setErrorMsg(result.error || 'Něco se nepodařilo. Zkontrolujte prosím vybraný čas.');
-      }
+      const newBooking = await createBooking(bookingPayload);
+      setSuccess(true);
+      setCancelSuccess(false);
+      setLastCreatedBooking(newBooking);
+      await refreshBookings();
+      // Clear form
+      setClientName('');
+      setClientSurname('');
+      setClientPhone('');
+      setClientEmail('');
+      setNotes('');
+      setSelectedTime('');
     } catch (err) {
-      console.error('Network error booking:', err);
-      setErrorMsg('Nepodařilo se spojit se serverem. Zkuste to prosím znovu.');
+      console.error('Firestore error booking:', err);
+      setErrorMsg('Nepodařilo se uložit rezervaci. Zkuste to prosím znovu.');
     } finally {
       setLoading(false);
     }
@@ -226,19 +214,12 @@ export default function BookingSection({
     }
     setCancelLoading(true);
     try {
-      const res = await fetch(`/api/bookings/${id}`, {
-        method: 'DELETE'
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setCancelSuccess(true);
-        await refreshBookings();
-      } else {
-        alert(data.error || 'Termín se nepodařilo zrušit.');
-      }
+      await deleteBooking(id);
+      setCancelSuccess(true);
+      await refreshBookings();
     } catch (err) {
       console.error('Error cancelling in success view:', err);
-      alert('Chyba komunikace se serverem.');
+      alert('Chyba při rušení termínu.');
     } finally {
       setCancelLoading(false);
     }
