@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SERVICES } from '../data/servicesData';
 import { Booking } from '../types';
 import { Calendar, Trash2, ShieldAlert, Plus, Check, Clock, User, Filter, AlertCircle, Sparkles, Search, X } from 'lucide-react';
+import { deleteBooking, createBooking, saveAvailableSlots } from '../lib/firebaseService';
 
 interface AdminSectionProps {
   bookings: Booking[];
@@ -53,21 +54,13 @@ export default function AdminSection({
     if (!window.confirm('Opravdu chcete zrušit/smazat tuto schůzku?')) return;
     setLoading(true);
     try {
-      const response = await fetch(`/api/bookings/${id}`, {
-        method: 'DELETE'
-      });
-      const result = await response.json();
-      if (response.ok && result.success) {
-        setSuccessMsg('Schůzka byla úspěšně smazána z kalendáře.');
-        await refreshBookings();
-        setTimeout(() => setSuccessMsg(''), 4000);
-      } else {
-        setErrorMsg(result.error || 'Něco se nepodařilo zrušit.');
-        setTimeout(() => setErrorMsg(''), 4000);
-      }
+      await deleteBooking(id);
+      setSuccessMsg('Schůzka byla úspěšně smazána z kalendáře.');
+      await refreshBookings();
+      setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err) {
       console.error('Error deleting booking:', err);
-      setErrorMsg('Chyba komunikace se serverem.');
+      setErrorMsg('Chyba při mazání schůzky.');
       setTimeout(() => setErrorMsg(''), 4500);
     } finally {
       setLoading(false);
@@ -95,25 +88,14 @@ export default function AdminSection({
     };
 
     try {
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-      const result = await response.json();
-      if (response.ok && result.success) {
-        setSuccessMsg('Časový úsek byl zablokován jako osobní volno.');
-        await refreshBookings();
-        setBlockNotes('Obědová pauza / Osobní volno');
-        setTimeout(() => setSuccessMsg(''), 4000);
-      } else {
-        setErrorMsg(result.error || 'Koliduje s jiným obsazeným časem.');
-      }
+      await createBooking(payload);
+      setSuccessMsg('Časový úsek byl zablokován jako osobní volno.');
+      await refreshBookings();
+      setBlockNotes('Obědová pauza / Osobní volno');
+      setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err) {
       console.error('Error blocking slot:', err);
-      setErrorMsg('Chyba při propojování se serverem.');
+      setErrorMsg('Chyba při propojování s databází.');
     } finally {
       setLoading(false);
     }
@@ -164,25 +146,11 @@ export default function AdminSection({
       : [...activeSlotsForDay, time];
 
     try {
-      const response = await fetch('/api/available-slots', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          date: selectedDate,
-          times: newTimesForDay
-        })
-      });
-      if (response.ok) {
-        await refreshAvailableSlots();
-      } else {
-        setErrorMsg('Chyba při ukládání volného termínu.');
-        setTimeout(() => setErrorMsg(''), 3000);
-      }
+      await saveAvailableSlots(selectedDate, newTimesForDay);
+      await refreshAvailableSlots();
     } catch (err) {
       console.error('Error toggling slot:', err);
-      setErrorMsg('Chyba připojení k serveru.');
+      setErrorMsg('Chyba při ukládání volného termínu.');
       setTimeout(() => setErrorMsg(''), 3000);
     } finally {
       setLoading(false);
@@ -205,23 +173,14 @@ export default function AdminSection({
     }
 
     try {
-      const response = await fetch('/api/available-slots', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          date: selectedDate,
-          times: timesToSet
-        })
-      });
-      if (response.ok) {
-        await refreshAvailableSlots();
-        setSuccessMsg('Šablona volných termínů byla aplikována.');
-        setTimeout(() => setSuccessMsg(''), 3000);
-      }
+      await saveAvailableSlots(selectedDate, timesToSet);
+      await refreshAvailableSlots();
+      setSuccessMsg('Šablona volných termínů byla aplikována.');
+      setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
       console.error('Preset error:', err);
+      setErrorMsg('Chyba při aplikování šablony.');
+      setTimeout(() => setErrorMsg(''), 3000);
     } finally {
       setLoading(false);
     }
