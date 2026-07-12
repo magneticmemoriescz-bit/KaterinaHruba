@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Clock, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { submitContactMessage } from '../lib/firebaseService';
 
 export default function ContactsSection() {
   const [name, setName] = useState('');
@@ -22,29 +23,16 @@ export default function ContactsSection() {
     setErrorMsg('');
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name, email, phone, message })
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setSuccess(true);
-        setName('');
-        setEmail('');
-        setPhone('');
-        setMessage('');
-        setTimeout(() => setSuccess(false), 9000);
-      } else {
-        setErrorMsg(result.error || 'Něco se nepodařilo odeslat. Zkuste to prosím znovu.');
-      }
+      await submitContactMessage({ name, email, phone, message });
+      setSuccess(true);
+      setName('');
+      setEmail('');
+      setPhone('');
+      setMessage('');
+      setTimeout(() => setSuccess(false), 9000);
     } catch (err) {
       console.error('Error submitting feedback form:', err);
-      setErrorMsg('Chyba komunikace se serverem. Formulář byl připraven k odeslání přes Netlify na magnetic.memories.cz@gmail.com.');
+      setErrorMsg('Něco se nepodařilo odeslat. Zkuste to prosím znovu nebo napište přímo na email.');
     } finally {
       setLoading(false);
     }
