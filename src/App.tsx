@@ -8,6 +8,7 @@ import AdminSection from './components/AdminSection';
 import ContactsSection from './components/ContactsSection';
 import { Booking } from './types';
 import { Heart, MapPin, Mail, Phone, CalendarHeart } from 'lucide-react';
+import { getBookings, getAvailableSlots, deleteBooking } from './lib/firebaseService';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('home');
@@ -45,65 +46,31 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeTab, isAdmin]);
 
-  // Load bookings from server with client-side localstorage fallback
+  // Load bookings from Firestore with local storage fallback
   const refreshBookings = async () => {
     try {
-      const res = await fetch('/api/bookings');
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setBookings(json.data);
-          // Sync local fallback
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(json.data));
-          return;
-        }
-      }
+      const data = await getBookings();
+      setBookings(data);
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
     } catch (err) {
-      console.warn('Could not contact bookings server, reading from localStorage fallback:', err);
-    }
-
-    // Fallback if network fails
-    const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (localData) {
-      try {
-        setBookings(JSON.parse(localData));
-      } catch (parseErr) {
-        console.error('Error parsing fallback local storage data:', parseErr);
-      }
-    } else {
-      // Mock initial data if completely offline and no local data
-      const mockInitial = [
-        {
-          id: 'mock-1',
-          serviceId: 'pece-o-jizvu',
-          date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-          startTime: '10:00',
-          endTime: '11:15',
-          clientName: 'Anna',
-          clientSurname: 'Nováková',
-          clientPhone: '+420 777 123 456',
-          clientEmail: 'anna.novakova@gmail.com',
-          notes: 'Tlak v podbřišku.',
-          createdAt: new Date().toISOString()
+      console.warn('Could not contact bookings Firestore, reading from localStorage fallback:', err);
+      const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (localData) {
+        try {
+          setBookings(JSON.parse(localData));
+        } catch (parseErr) {
+          console.error('Error parsing fallback local storage data:', parseErr);
         }
-      ];
-      setBookings(mockInitial);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(mockInitial));
+      }
     }
   };
 
   const refreshAvailableSlots = async () => {
     try {
-      const res = await fetch('/api/available-slots');
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setAvailableSlots(json.data);
-          return;
-        }
-      }
+      const data = await getAvailableSlots();
+      setAvailableSlots(data);
     } catch (err) {
-      console.warn('Could not contact available-slots server:', err);
+      console.warn('Could not contact available-slots Firestore:', err);
     }
   };
 
@@ -337,21 +304,14 @@ export default function App() {
                     onClick={async () => {
                       setUrlCancelLoading(true);
                       try {
-                        const res = await fetch(`/api/bookings/${urlCancelBookingId}`, {
-                          method: 'DELETE'
-                        });
-                        const data = await res.json();
-                        if (res.ok && data.success) {
+                        if (urlCancelBookingId) {
+                          await deleteBooking(urlCancelBookingId);
                           setUrlCancelSuccess(true);
                           await refreshBookings();
-                        } else {
-                          alert(data.error || 'Termín se nepodařilo zrušit. Možná již byl zrušen dříve.');
-                          window.history.replaceState({}, document.title, window.location.pathname);
-                          setUrlCancelBookingId(null);
                         }
                       } catch (err) {
                         console.error('Error in global cancellation call:', err);
-                        alert('Chyba komunikace při rušení.');
+                        alert('Chyba při rušení termínu.');
                       } finally {
                         setUrlCancelLoading(false);
                       }
