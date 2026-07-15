@@ -167,7 +167,7 @@ export default function App() {
         {/* Transparent Banner Notification for admin preview comfort */}
         <div className="bg-[#3C2213] text-[#FAF6F0] text-center px-4 py-2 text-xs font-light tracking-wide flex items-center justify-center space-x-1.5" id="top-bar-announce">
           <CalendarHeart className="w-3.5 h-3.5 animate-pulse" />
-          <span>Vítejte. Objevte klidnou náruč péče o tělo i o jizvu.</span>
+          <span>Vítejte. Objevte klidnou náruč péče o tělo i o duši.</span>
         </div>
 
         {/* Global Navigation bar */}
@@ -242,9 +242,11 @@ export default function App() {
         </div>
 
         {/* Footer legal & sub bar */}
-        <div className="bg-stone-950 border-t border-stone-800/50 py-5 text-center text-[10px] text-stone-500 font-light font-sans tracking-wider" id="footer-bottom">
-          <p>© {new Date().getFullYear()} Kateřina Hrubá. Všechna práva vyhrazena.</p>
-          <p className="mt-1 opacity-70">Licencovaná porodní asistentka zapsaná v registru zdravotnických pracovníků ČR.</p>
+        <div className="bg-stone-950 border-t border-stone-800/50 py-6 text-center text-[10px] text-stone-500 font-light font-sans tracking-wider" id="footer-bottom">
+          <p className="mb-2">© {new Date().getFullYear()} Kateřina Hrubá. Všechna práva vyhrazena.</p>
+          <p className="text-[12px] text-stone-300 font-normal">
+            Designed by <a href="http://budumitweb.cz/" target="_blank" rel="noopener noreferrer" className="text-[#B38B6D] hover:text-[#e2be9f] font-bold transition-all duration-200 underline decoration-2 decoration-solid underline-offset-4 decoration-[#B38B6D]/70 hover:decoration-[#e2be9f]">BuduMítWeb</a>
+          </p>
         </div>
       </footer>
 
