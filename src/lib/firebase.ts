@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDkC34jfhFxU-sG1iaauXvvh5bSoTpIlH4",
@@ -14,6 +14,6 @@ const app = initializeApp(firebaseConfig);
 
 const databaseId = "ai-studio-celostnpekateina-7decc2cd-0d5c-4ed6-99d2-156e3fcdfb97" as string;
 
-export const db = databaseId && databaseId !== '(default)'
-  ? getFirestore(app, databaseId)
-  : getFirestore(app);
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+}, databaseId && databaseId !== '(default)' ? databaseId : undefined);
