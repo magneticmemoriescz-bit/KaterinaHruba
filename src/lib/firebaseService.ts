@@ -118,7 +118,7 @@ export async function getAvailableSlots(): Promise<{ date: string; time: string 
 
   const slots: { date: string; time: string }[] = [];
   
-  for (let i = 1; i <= 30; i++) {
+  for (let i = 0; i <= 30; i++) {
     const d = new Date();
     d.setDate(d.getDate() + i);
     if (d.getDay() === 0) continue; // Skip Sunday
@@ -163,3 +163,4 @@ export async function submitContactMessage(message: Omit<ContactMessage, 'id' | 
     ...payload
   };
 }
+
