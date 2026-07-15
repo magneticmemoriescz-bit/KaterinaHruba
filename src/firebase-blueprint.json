@@ -1,0 +1,147 @@
+{
+  "entities": {
+    "booking": {
+      "title": "Booking",
+      "description": "Rezervace termínu pro masáže/terapie nebo administrátorská blokace",
+      "type": "object",
+      "properties": {
+        "serviceId": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "ID vybrané služby nebo 'block-personal' pro osobní volno"
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Datum schůzky ve formátu RRRR-MM-DD"
+        },
+        "startTime": {
+          "type": "string",
+          "pattern": "^\\d{2}:\\d{2}$",
+          "description": "Čas začátku schůzky (např. 09:00)"
+        },
+        "endTime": {
+          "type": "string",
+          "pattern": "^\\d{2}:\\d{2}$",
+          "description": "Čas konce schůzky (např. 10:15)"
+        },
+        "clientName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Jméno klienta"
+        },
+        "clientSurname": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Příjmení klienta"
+        },
+        "clientPhone": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Telefonní číslo klienta"
+        },
+        "clientEmail": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "Emailová adresa klienta"
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Nepovinná poznámka klienta nebo důvod blokace"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO časové razítko vytvoření"
+        }
+      },
+      "required": [
+        "serviceId",
+        "date",
+        "startTime",
+        "endTime",
+        "clientName",
+        "clientSurname",
+        "clientPhone",
+        "clientEmail",
+        "createdAt"
+      ]
+    },
+    "available_day": {
+      "title": "Available Day",
+      "description": "Nastavení aktivních (volných) časů pro konkrétní den",
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Datum dne ve formátu RRRR-MM-DD"
+        },
+        "activeTimes": {
+          "type": "array",
+          "description": "Seznam časů, které jsou vypsány jako volné (např. ['09:00', '09:15'])"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO časové razítko poslední aktualizace"
+        }
+      },
+      "required": [
+        "date",
+        "activeTimes"
+      ]
+    },
+    "contact_message": {
+      "title": "Contact Message",
+      "description": "Zpráva z kontaktního formuláře",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "Celé jméno odesílatele"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "E-mail odesílatele"
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Telefon odesílatele"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 5000,
+          "description": "Zpráva nebo dotaz"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO časové razítko odeslání"
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "phone",
+        "message",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/bookings/{bookingId}": {
+      "schema": "booking",
+      "description": "Kolekce všech rezervací a blokací"
+    },
+    "/available_days/{dayId}": {
+      "schema": "available_day",
+      "description": "Konfigurace aktivních volných časů na jednotlivé dny"
+    },
+    "/messages/{messageId}": {
+      "schema": "contact_message",
+      "description": "Dotazy a zprávy zaslané přes kontaktní formulář"
+    }
+  }
+}
